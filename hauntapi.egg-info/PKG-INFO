@@ -1,0 +1,85 @@
+Metadata-Version: 2.1
+Name: hauntapi
+Version: 1.0.0
+Summary: Extract structured data from any website with one API call. Haunt API Python SDK.
+Home-page: https://hauntapi.com
+Author: Haunt API
+Author-email: hello@hauntapi.com
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 3
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Classifier: Topic :: Internet :: WWW/HTTP
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+License-File: LICENSE
+
+# hauntapi
+
+Python SDK for [Haunt API](https://hauntapi.com) — extract structured data from any website with one API call.
+
+## Install
+
+```bash
+pip install hauntapi
+```
+
+## Quick Start
+
+```python
+from hauntapi import Haunt
+
+client = Haunt(api_key="haunt_your_key")
+
+# Extract data from any URL
+result = client.extract(
+    url="https://news.ycombinator.com",
+    prompt="Get the top 5 story titles and their points"
+)
+
+print(result.data)
+# {"stories": [{"title": "...", "points": 572}, ...]}
+
+print(result.credits_remaining)
+# 97
+
+# Get usage info
+print(client.usage())
+# {"plan": "free", "remaining": 97, "monthly_limit": 100}
+```
+
+## Features
+
+- **`extract(url, prompt)`** — Extract structured data from any URL
+- **`extract_auth(url, prompt, cookies=..., headers=...)`** — Extract from authenticated/private pages
+- **`extract_batch(urls, prompt)`** — Extract from multiple URLs at once
+- **`usage()`** — Check your quota and plan
+
+## Error Handling
+
+```python
+from hauntapi import Haunt, AuthenticationError, QuotaExceededError
+
+client = Haunt(api_key="your_key")
+
+try:
+    result = client.extract(url="https://example.com", prompt="Get the title")
+except AuthenticationError:
+    print("Invalid API key")
+except QuotaExceededError:
+    print("Monthly quota exceeded")
+```
+
+## Pricing
+
+- **Free**: 100 requests/month, no credit card
+- **Pro**: $0.01/request — pay only for what you use
+
+Get your API key at [hauntapi.com](https://hauntapi.com).
+
+## Links
+
+- Docs: https://hauntapi.com/docs
+- MCP Server: https://github.com/Darko893/mcp-server
+- API: https://hauntapi.com
