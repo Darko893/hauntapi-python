@@ -56,10 +56,10 @@ except QuotaExceededError:
 
 ## Pricing
 
-- **Free**: 100 successful requests/month, no credit card
-- **Starter**: £19/month for 5,000 successful public-page requests
-- **Pro**: £49/month for 25,000 successful requests plus authenticated extraction
-- **Scale**: £99/month for 75,000 successful requests plus batch extraction
+- **Free**: 1,000 credits/month, no credit card
+- **Starter**: £19/month for 10,000 credits
+- **Pro**: £49/month for 30,000 credits plus authenticated extraction
+- **Scale**: £99/month for 80,000 credits plus batch extraction
 
 Get your API key at [hauntapi.com](https://hauntapi.com).
 
