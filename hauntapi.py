@@ -33,7 +33,7 @@ Usage:
 """
 
 import httpx
-from typing import Optional, Union
+from typing import Optional
 from dataclasses import dataclass, field
 
 
