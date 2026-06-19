@@ -1,7 +1,7 @@
 Metadata-Version: 2.1
 Name: hauntapi
 Version: 1.0.0
-Summary: Extract structured data from any website with one API call. Haunt API Python SDK.
+Summary: Extract structured data from permitted public pages with one API call. Haunt API Python SDK.
 Home-page: https://hauntapi.com
 Author: Haunt API
 Author-email: hello@hauntapi.com
@@ -17,7 +17,7 @@ License-File: LICENSE
 
 # hauntapi
 
-Python SDK for [Haunt API](https://hauntapi.com) — extract structured data from any website with one API call.
+Python SDK for [Haunt API](https://hauntapi.com) — extract structured data from permitted public pages with one API call.
 
 ## Install
 

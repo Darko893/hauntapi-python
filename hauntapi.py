@@ -1,6 +1,6 @@
 """
 Haunt API Python SDK
-Extract structured data from any website with one API call.
+Extract structured data from permitted public pages with one API call.
 
 Usage:
     pip install hauntapi

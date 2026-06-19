@@ -3,7 +3,7 @@ from setuptools import setup
 setup(
     name="hauntapi",
     version="1.0.0",
-    description="Extract structured data from any website with one API call. Haunt API Python SDK.",
+    description="Extract structured data from permitted public pages with one API call. Haunt API Python SDK.",
     long_description=open("README.md").read() if __import__("os").path.exists("README.md") else "",
     long_description_content_type="text/markdown",
     author="Haunt API",
