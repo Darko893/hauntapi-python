@@ -47,6 +47,14 @@ class ExtractResult:
     latency_ms: Optional[int] = None
     tokens_used: Optional[int] = None
     credits_remaining: Optional[int] = None
+    message: Optional[str] = None
+    error_code: Optional[str] = None
+    charged: Optional[bool] = None
+    credits_used: Optional[int] = None
+    mode: Optional[str] = None
+    confidence: Optional[float] = None
+    evidence: Optional[dict] = None
+    trace: Optional[dict] = None
 
     def __repr__(self):
         if self.success:
@@ -64,6 +72,46 @@ class BatchResult:
 
     def __repr__(self):
         return f"<BatchResult total={self.total} successful={self.successful} remaining={self.credits_remaining}>"
+
+
+def _extract_result_from_data(data: dict) -> ExtractResult:
+    """Build ExtractResult from the current Haunt response contract."""
+    return ExtractResult(
+        success=data.get("success", False),
+        data=data.get("data"),
+        error=data.get("error"),
+        url=data.get("url"),
+        latency_ms=data.get("latency_ms"),
+        tokens_used=data.get("tokens_used"),
+        credits_remaining=data.get("credits_remaining"),
+        message=data.get("message"),
+        error_code=data.get("error_code"),
+        charged=data.get("charged"),
+        credits_used=data.get("credits_used"),
+        mode=data.get("mode"),
+        confidence=data.get("confidence"),
+        evidence=data.get("evidence"),
+        trace=data.get("trace"),
+    )
+
+
+def _quota_error_message(data: dict) -> str:
+    """Return a useful 429 message without mislabeling used credits as remaining."""
+    detail = data.get("detail") if isinstance(data.get("detail"), dict) else {}
+    source = {**detail, **data}
+    message = source.get("message") or source.get("error") or "Monthly quota or rate limit exceeded"
+    parts = [str(message)]
+    if source.get("credits_remaining") is not None or source.get("remaining") is not None:
+        parts.append(f"remaining={source.get('credits_remaining', source.get('remaining'))}")
+    if source.get("used") is not None or source.get("credits_used_this_month") is not None:
+        parts.append(f"used={source.get('used', source.get('credits_used_this_month'))}")
+    if source.get("reserved") is not None or source.get("credits_reserved_this_month") is not None:
+        parts.append(f"reserved={source.get('reserved', source.get('credits_reserved_this_month'))}")
+    if source.get("monthly_credits") is not None or source.get("monthly_limit") is not None:
+        parts.append(f"monthly_credits={source.get('monthly_credits', source.get('monthly_limit'))}")
+    if source.get("upgrade_url"):
+        parts.append(f"upgrade={source.get('upgrade_url')}")
+    return "; ".join(parts)
 
 
 class Haunt:
@@ -123,19 +171,9 @@ class Haunt:
         if resp.status_code == 401:
             raise AuthenticationError("Invalid API key")
         if resp.status_code == 429:
-            raise QuotaExceededError(
-                f"Monthly quota exceeded. Remaining: {data.get('detail', {}).get('used', '?')}"
-            )
+            raise QuotaExceededError(_quota_error_message(data))
 
-        return ExtractResult(
-            success=data.get("success", False),
-            data=data.get("data"),
-            error=data.get("error"),
-            url=data.get("url"),
-            latency_ms=data.get("latency_ms"),
-            tokens_used=data.get("tokens_used"),
-            credits_remaining=data.get("credits_remaining"),
-        )
+        return _extract_result_from_data(data)
 
     def extract_auth(
         self,
@@ -181,17 +219,9 @@ class Haunt:
                 f"{detail.get('error', 'Plan upgrade required')}. Current: {detail.get('current_plan', 'unknown')}"
             )
         if resp.status_code == 429:
-            raise QuotaExceededError("Monthly quota exceeded")
+            raise QuotaExceededError(_quota_error_message(data))
 
-        return ExtractResult(
-            success=data.get("success", False),
-            data=data.get("data"),
-            error=data.get("error"),
-            url=data.get("url"),
-            latency_ms=data.get("latency_ms"),
-            tokens_used=data.get("tokens_used"),
-            credits_remaining=data.get("credits_remaining"),
-        )
+        return _extract_result_from_data(data)
 
     def extract_batch(
         self,
