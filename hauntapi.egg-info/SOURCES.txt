@@ -1,9 +1,0 @@
-LICENSE
-README.md
-hauntapi.py
-setup.py
-hauntapi.egg-info/PKG-INFO
-hauntapi.egg-info/SOURCES.txt
-hauntapi.egg-info/dependency_links.txt
-hauntapi.egg-info/requires.txt
-hauntapi.egg-info/top_level.txt

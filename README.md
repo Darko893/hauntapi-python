@@ -25,16 +25,36 @@ print(result.data)
 # {"stories": [{"title": "...", "points": 572}, ...]}
 
 print(result.credits_remaining)
-# 97
+# 998
 
 # Get usage info
 print(client.usage())
-# {"plan": "free", "remaining": 97, "monthly_limit": 100}
+# {"plan": "free", "remaining": 998, "monthly_limit": 1000}
+
+# Optional response modes and browser-rendering controls
+markdown = client.extract(
+    url="https://example.com",
+    prompt="Return the main page content as Markdown",
+    response_format="markdown",
+)
+
+mobile = client.extract(
+    url="https://example.com/products",
+    prompt="Extract product names and prices",
+    device="mobile",
+)
+
+# Paid plans only: run bounded browser steps before extraction
+result = client.extract(
+    url="https://example.com/products",
+    prompt="Extract visible product names and prices",
+    js_scenario=[{"action": "scroll", "pixels": 800}],
+)
 ```
 
 ## Features
 
-- **`extract(url, prompt)`** — Extract structured data from any URL
+- **`extract(url, prompt, response_format=..., device=..., js_scenario=...)`** — Extract structured data, Markdown, raw HTML, screenshots, or render with a mobile/desktop browser profile
 - **`extract_auth(url, prompt, cookies=..., headers=...)`** — Extract from authenticated/private pages
 - **`extract_batch(urls, prompt)`** — Extract from multiple URLs at once
 - **`usage()`** — Check your quota and plan
