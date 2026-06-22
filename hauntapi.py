@@ -145,12 +145,18 @@ class Haunt:
         self,
         url: str,
         prompt: str,
+        response_format: Optional[str] = None,
+        device: Optional[str] = None,
+        js_scenario: Optional[list] = None,
     ) -> ExtractResult:
         """Extract structured data from a URL.
 
         Args:
             url: The URL to extract data from
             prompt: Describe what data you want in plain English
+            response_format: Optional. "markdown"/"md" for clean page text, "raw_html"/"html", "json" (default), or "screenshot".
+            device: Optional. "mobile" or "desktop" render profile (forces browser rendering).
+            js_scenario: Optional (paid plans). Up to 10 scripted browser steps before extraction.
 
         Returns:
             ExtractResult with the extracted data as a dict
@@ -162,9 +168,16 @@ class Haunt:
             )
             print(result.data)
         """
+        body: dict = {"url": url, "prompt": prompt}
+        if response_format is not None:
+            body["response_format"] = response_format
+        if device is not None:
+            body["device"] = device
+        if js_scenario is not None:
+            body["js_scenario"] = js_scenario
         resp = self._client.post(
             "/v1/extract",
-            json={"url": url, "prompt": prompt},
+            json=body,
         )
         data = resp.json()
 
@@ -230,7 +243,7 @@ class Haunt:
     ) -> BatchResult:
         """Extract data from multiple URLs at once.
 
-        Sends the same prompt to each URL. Each URL counts as one request.
+        Sends the same prompt to each URL. Each URL is billed as a normal structured extraction (2 credits, plus any large-page surcharge).
         Requires Scale plan.
 
         Args:
