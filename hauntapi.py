@@ -32,6 +32,7 @@ Usage:
     )
 """
 
+import os
 import httpx
 from typing import Optional
 from dataclasses import dataclass, field
@@ -125,11 +126,16 @@ class Haunt:
 
     def __init__(
         self,
-        api_key: str,
+        api_key: str = None,
         base_url: str = "https://hauntapi.com",
         timeout: int = 120,
     ):
-        self.api_key = api_key
+        self.api_key = api_key or os.environ.get("HAUNT_API_KEY", "")
+        if not self.api_key:
+            raise ValueError(
+                "No API key. Pass api_key or set HAUNT_API_KEY. "
+                "Free key: https://hauntapi.com/#signup"
+            )
         self.base_url = base_url.rstrip("/")
         self.timeout = timeout
         self._client = httpx.Client(
@@ -308,3 +314,77 @@ class QuotaExceededError(HauntError):
 class PlanRequiredError(HauntError):
     """Current plan doesn't support this feature."""
     pass
+
+
+# ---------------------------------------------------------------------------
+# Agent-framework tools. Same Haunt client, wired into LangChain, LlamaIndex,
+# or CrewAI. Lazy imports, so you only need the framework you actually install.
+# ---------------------------------------------------------------------------
+
+def _tool_run(client, url, prompt):
+    import json as _json
+    result = client.extract(url, prompt)
+    if not result.success:
+        return _json.dumps({
+            "error_code": result.error_code or "extraction_failed",
+            "message": result.message or result.error or "extraction failed",
+        })
+    data = result.data
+    return data if isinstance(data, str) else _json.dumps(data)
+
+
+def langchain_tool(api_key=None, **kwargs):
+    """Return a LangChain StructuredTool backed by Haunt. Requires langchain-core."""
+    try:
+        from langchain_core.tools import StructuredTool
+        from pydantic import BaseModel, Field
+    except ImportError as exc:  # pragma: no cover
+        raise ImportError("Install langchain-core to use langchain_tool().") from exc
+    client = Haunt(api_key=api_key, **kwargs)
+
+    class _Args(BaseModel):
+        url: str = Field(description="The public web page URL to extract from.")
+        prompt: str = Field(description="Plain-language description of the data to return.")
+
+    return StructuredTool.from_function(
+        func=lambda url, prompt: _tool_run(client, url, prompt),
+        name="haunt_extract",
+        description=(
+            "Extract structured data or clean text from a public web page. Input a "
+            "URL and a plain-language prompt of what to return. Returns JSON, or an "
+            "honest error_code (access_denied, login_required, not_found) instead of "
+            "made-up data when the page cannot be read."
+        ),
+        args_schema=_Args,
+    )
+
+
+def llamaindex_tool(api_key=None, **kwargs):
+    """Return a LlamaIndex FunctionTool backed by Haunt. Requires llama-index-core."""
+    try:
+        from llama_index.core.tools import FunctionTool
+    except ImportError as exc:  # pragma: no cover
+        raise ImportError("Install llama-index-core to use llamaindex_tool().") from exc
+    client = Haunt(api_key=api_key, **kwargs)
+
+    def haunt_extract(url: str, prompt: str) -> str:
+        """Extract structured data or clean text from a public web page URL and prompt."""
+        return _tool_run(client, url, prompt)
+
+    return FunctionTool.from_defaults(fn=haunt_extract, name="haunt_extract")
+
+
+def crewai_tool(api_key=None, **kwargs):
+    """Return a CrewAI tool backed by Haunt. Requires crewai."""
+    try:
+        from crewai.tools import tool
+    except ImportError as exc:  # pragma: no cover
+        raise ImportError("Install crewai to use crewai_tool().") from exc
+    client = Haunt(api_key=api_key, **kwargs)
+
+    @tool("Haunt web extraction")
+    def haunt_extract(url: str, prompt: str) -> str:
+        """Extract structured data or clean text from a public web page URL and prompt."""
+        return _tool_run(client, url, prompt)
+
+    return haunt_extract

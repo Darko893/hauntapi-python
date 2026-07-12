@@ -1,6 +1,24 @@
+<div align="center">
+
+<img src="https://hauntapi.com/favicon-192x192.png" width="76" alt="Haunt" />
+
 # hauntapi
 
-Python SDK for [Haunt API](https://hauntapi.com) — extract structured data from permitted public pages with one API call.
+**Web extraction for AI agents.** Turn any permitted public web page into clean JSON or Markdown with one call, as a plain client or a LangChain, LlamaIndex, or CrewAI tool.
+
+[![PyPI](https://img.shields.io/pypi/v/hauntapi?color=1f6feb)](https://pypi.org/project/hauntapi/)
+[![Python](https://img.shields.io/pypi/pyversions/hauntapi)](https://pypi.org/project/hauntapi/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green)](https://opensource.org/licenses/MIT)
+
+[Website](https://hauntapi.com) &middot; [Docs](https://hauntapi.com/docs) &middot; [Get a free key](https://hauntapi.com/#signup) &middot; [MCP server](https://github.com/Darko893/mcp-server)
+
+</div>
+
+---
+
+Haunt reads a public page and hands your agent structured data back. When a page is blocked, login-walled, CAPTCHA-gated, or too thin to trust, it returns an honest machine-readable error instead of fabricated data, so your agent can retry, switch source, skip, or ask a human.
+
+Free tier: 1,000 credits a month, no card.
 
 ## Install
 
@@ -8,83 +26,61 @@ Python SDK for [Haunt API](https://hauntapi.com) — extract structured data fro
 pip install hauntapi
 ```
 
-## Quick Start
+## Quick start
 
 ```python
 from hauntapi import Haunt
 
-client = Haunt(api_key="haunt_your_key")
+haunt = Haunt("your_api_key")          # or set HAUNT_API_KEY
+result = haunt.extract("https://example.com/product", "product name and price")
 
-# Extract data from any URL
-result = client.extract(
-    url="https://news.ycombinator.com",
-    prompt="Get the top 5 story titles and their points"
-)
-
-print(result.data)
-# {"stories": [{"title": "...", "points": 572}, ...]}
-
-print(result.credits_remaining)
-# 998
-
-# Get usage info
-print(client.usage())
-# {"plan": "free", "remaining": 998, "monthly_limit": 1000}
-
-# Optional response modes and browser-rendering controls
-markdown = client.extract(
-    url="https://example.com",
-    prompt="Return the main page content as Markdown",
-    response_format="markdown",
-)
-
-mobile = client.extract(
-    url="https://example.com/products",
-    prompt="Extract product names and prices",
-    device="mobile",
-)
-
-# Paid plans only: run bounded browser steps before extraction
-result = client.extract(
-    url="https://example.com/products",
-    prompt="Extract visible product names and prices",
-    js_scenario=[{"action": "scroll", "pixels": 800}],
-)
+if result.success:
+    print(result.data)                 # {"name": "...", "price": "..."}
+else:
+    print(result.error_code)           # access_denied, login_required, not_found, ...
 ```
 
-## Features
-
-- **`extract(url, prompt, response_format=..., device=..., js_scenario=...)`** — Extract structured data, Markdown, raw HTML, screenshots, or render with a mobile/desktop browser profile
-- **`extract_auth(url, prompt, cookies=..., headers=...)`** — Extract from authenticated/private pages
-- **`extract_batch(urls, prompt)`** — Extract from multiple URLs at once
-- **`usage()`** — Check your quota and plan
-
-## Error Handling
+Markdown for RAG, notes, or `.md` files:
 
 ```python
-from hauntapi import Haunt, AuthenticationError, QuotaExceededError
-
-client = Haunt(api_key="your_key")
-
-try:
-    result = client.extract(url="https://example.com", prompt="Get the title")
-except AuthenticationError:
-    print("Invalid API key")
-except QuotaExceededError:
-    print("Monthly quota exceeded")
+result = haunt.extract("https://example.com/docs", "the page content",
+                       response_format="markdown")
 ```
 
-## Pricing
+## Use it as an agent tool
 
-- **Free**: 1,000 credits/month, no credit card
-- **Starter**: £19/month for 10,000 credits
-- **Pro**: £49/month for 30,000 credits plus authenticated extraction
-- **Scale**: £99/month for 80,000 credits plus batch extraction
+The same client, wired into the framework you already use. Lazy imports, so you only need the one you install.
 
-Get your API key at [hauntapi.com](https://hauntapi.com).
+**LangChain**
+```python
+from hauntapi import langchain_tool
+tools = [langchain_tool()]
+```
 
-## Links
+**LlamaIndex**
+```python
+from hauntapi import llamaindex_tool
+tools = [llamaindex_tool()]
+```
 
-- Docs: https://hauntapi.com/docs
-- MCP Server: https://github.com/Darko893/mcp-server
-- API: https://hauntapi.com
+**CrewAI**
+```python
+from crewai import Agent
+from hauntapi import crewai_tool
+researcher = Agent(role="Researcher", tools=[crewai_tool()])
+```
+
+Need the framework installed too? `pip install "hauntapi[langchain]"` (or `llamaindex`, `crewai`).
+
+## Why honest failure matters for agents
+
+An agent that receives fabricated data from a blocked page acts on garbage and cannot tell. Haunt returns error codes like `access_denied`, `login_required`, `captcha_required`, and `not_found`, so your agent branches on reality instead of a hallucination.
+
+## Also in the box
+
+- `haunt.extract_batch([...])` for many URLs in one call
+- `haunt.extract_auth(...)` for pages you are allowed to access with your own headers
+- `haunt.usage()` for remaining credits
+- Full REST and MCP docs: https://hauntapi.com/docs
+
+MIT licensed.
