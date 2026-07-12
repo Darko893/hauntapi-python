@@ -119,14 +119,15 @@ class Haunt:
     """Haunt API client.
 
     Args:
-        api_key: Your Haunt API key (get one at https://hauntapi.com)
+        api_key: Your Haunt API key. Optional if HAUNT_API_KEY is set in the
+            environment. Get one at https://hauntapi.com
         base_url: API base URL (default: https://hauntapi.com)
         timeout: Request timeout in seconds (default: 120)
     """
 
     def __init__(
         self,
-        api_key: str = None,
+        api_key: Optional[str] = None,
         base_url: str = "https://hauntapi.com",
         timeout: int = 120,
     ):
