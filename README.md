@@ -10,7 +10,7 @@
 [![Python](https://img.shields.io/pypi/pyversions/hauntapi)](https://pypi.org/project/hauntapi/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](https://opensource.org/licenses/MIT)
 
-[Website](https://hauntapi.com) &middot; [Docs](https://hauntapi.com/docs) &middot; [Get a free key](https://hauntapi.com/#signup) &middot; [MCP server](https://github.com/Darko893/mcp-server)
+[Website](https://hauntapi.com) &middot; [Docs](https://hauntapi.com/docs) &middot; [Get a free key](https://hauntapi.com/?utm_source=github&utm_medium=readme&utm_campaign=hauntapi_sdk#signup) &middot; [MCP server](https://github.com/Darko893/mcp-server)
 
 </div>
 
